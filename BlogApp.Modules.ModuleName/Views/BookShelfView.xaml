@@ -1,0 +1,129 @@
+﻿<UserControl
+    x:Class="BlogApp.Modules.ModuleName.Views.BookShelfView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="clr-namespace:BlogApp.Core.Constants;assembly=BlogApp.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:BlogApp.Modules.ModuleName.Views"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prism="http://prismlibrary.com/"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <!--  书本封面的模板  -->
+        <DataTemplate x:Key="BookCoverTemplate">
+            <materialDesign:Card
+                Width="133"
+                Height="193"
+                Margin="15"
+                Padding="1"
+                materialDesign:ElevationAssist.Elevation="Dp24"
+                Background="{Binding CoverColor}"
+                Opacity="0.8">
+                <Button
+                    Width="133"
+                    Height="193"
+                    Style="{DynamicResource MaterialDesignNumericUpDownButtonsStyle}">
+                    <Button.Content>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <TextBlock
+                                FontFamily="Source Han Serif SC Heavy"
+                                FontSize="16"
+                                FontWeight="DemiBold"
+                                Foreground="{Binding Foreground}"
+                                Text="{Binding Title}"
+                                TextWrapping="Wrap"
+                                ToolTip="{Binding Title}" />
+                            <Separator Grid.Row="1" />
+                            <DockPanel Grid.Row="2" LastChildFill="False">
+                                <TextBlock
+                                    DockPanel.Dock="Right"
+                                    FontFamily="KaiTi"
+                                    Foreground="{Binding Foreground}"
+                                    Text="  著"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    DockPanel.Dock="Right"
+                                    FontFamily="KaiTi"
+                                    Foreground="{Binding Foreground}"
+                                    Text="{Binding Author}"
+                                    TextWrapping="Wrap" />
+                            </DockPanel>
+
+                        </Grid>
+                    </Button.Content>
+                </Button>
+            </materialDesign:Card>
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid>
+        <ScrollViewer Style="{DynamicResource MaterialDesignScrollViewer}">
+
+
+            <!--<materialDesign:Card
+                    Width="133"
+                    Height="193"
+                    Margin="15"
+                    Padding="1"
+                    materialDesign:ElevationAssist.Elevation="Dp24"
+                    Background="Orange"
+                    Opacity="0.8">
+                    <Button
+                        Width="133"
+                        Height="193"
+                        Style="{DynamicResource MaterialDesignNumericUpDownButtonsStyle}">
+                        <Button.Content>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBlock
+                                    FontFamily="Source Han Serif SC Heavy"
+                                    FontSize="16"
+                                    FontWeight="DemiBold"
+                                    Foreground="White"
+                                    Text=".Net从入门到入土"
+                                    TextWrapping="Wrap"
+                                    ToolTip=".Net从入门到入土" />
+                                <Separator Grid.Row="1" />
+                                <DockPanel Grid.Row="2" LastChildFill="False">
+                                    <TextBlock
+                                        DockPanel.Dock="Right"
+                                        FontFamily="KaiTi"
+                                        Foreground="White"
+                                        Text="  著"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        DockPanel.Dock="Right"
+                                        FontFamily="KaiTi"
+                                        Foreground="White"
+                                        Text="蔺太微"
+                                        TextWrapping="Wrap" />
+                                </DockPanel>
+                            </Grid>
+                        </Button.Content>
+                    </Button>
+                </materialDesign:Card>-->
+
+            <ItemsControl ItemTemplate="{StaticResource BookCoverTemplate}" ItemsSource="{Binding BookList}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+
+
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,22 @@
+﻿<UserControl
+    x:Class="BlogApp.Modules.ModuleName.Views.HomeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="clr-namespace:BlogApp.Core.Constants;assembly=BlogApp.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:BlogApp.Modules.ModuleName.Views"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prism="http://prismlibrary.com/"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
+    <materialDesign:Card Margin="15" UniformCornerRadius="10">
+        <TabControl materialDesign:ColorZoneAssist.Mode="SecondaryMid" Style="{DynamicResource MaterialDesignFilledTabControl}">
+            <TabItem Header="公告" IsSelected="True">
+                <ContentControl prism:RegionManager.RegionName="{x:Static core:RegionNames.AnnRegion}" />
+            </TabItem>
+        </TabControl>
+    </materialDesign:Card>
+</UserControl>
