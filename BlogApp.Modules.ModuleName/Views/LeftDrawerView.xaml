@@ -53,13 +53,14 @@
             DockPanel.Dock="Top"
             FontFamily="kaiti"
             FontSize="20"
-            Text="蔺太微" />
+            Text="{Binding UserName}"
+            ToolTip="{Binding Signature}" />
         <TextBlock
             Margin="5"
             HorizontalAlignment="Center"
             DockPanel.Dock="Top"
             FontFamily="kaiti"
-            Text="UID:000000001" />
+            Text="{Binding UserId}" />
         <ItemsControl ItemTemplate="{StaticResource NavButtonTemplate}" ItemsSource="{Binding NavItems}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>

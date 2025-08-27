@@ -54,6 +54,7 @@ namespace BlogApp
             });
 
             containerRegistry.RegisterSingleton<IDatabaseService<User>, DatabaseService<User>>();
+            containerRegistry.RegisterSingleton<IDatabaseService<Book>, DatabaseService<Book>>();
             containerRegistry.RegisterSingleton<IEncryptService, EncryptService>();
             //containerRegistry.RegisterSingleton<IMessageService, MessageService>();
             

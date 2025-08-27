@@ -39,6 +39,7 @@ namespace BlogApp.Modules.ModuleName
             containerRegistry.RegisterForNavigation<ArticleEditorView>();
             containerRegistry.RegisterForNavigation<BookContentView>();
             containerRegistry.RegisterForNavigation<BookShelfView>();
+            containerRegistry.RegisterForNavigation<BookEditorView>();
             containerRegistry.RegisterForNavigation<HomeView>();
             containerRegistry.RegisterForNavigation<LeftDrawerView>();
             containerRegistry.RegisterForNavigation<LoginView>();

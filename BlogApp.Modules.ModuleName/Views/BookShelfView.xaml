@@ -8,6 +8,7 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
+    x:Name="BookShelfUserControl"
     d:DesignHeight="450"
     d:DesignWidth="800"
     prism:ViewModelLocator.AutoWireViewModel="True"
@@ -21,8 +22,20 @@
                 Margin="15"
                 Padding="1"
                 materialDesign:ElevationAssist.Elevation="Dp24"
-                Background="{Binding CoverColor}"
+                Background="{Binding Color}"
                 Opacity="0.8">
+                <materialDesign:Card.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem
+                            Command="{Binding DataContext.ModifyCommand, Source={x:Reference Name=BookShelfUserControl}}"
+                            CommandParameter="{Binding Id}"
+                            Header="修改书籍" />
+                        <MenuItem
+                            Command="{Binding DataContext.DeleteCommand, Source={x:Reference Name=BookShelfUserControl}}"
+                            CommandParameter="{Binding Id}"
+                            Header="删除书籍" />
+                    </ContextMenu>
+                </materialDesign:Card.ContextMenu>
                 <Button
                     Width="133"
                     Height="193"
@@ -64,57 +77,24 @@
             </materialDesign:Card>
         </DataTemplate>
     </UserControl.Resources>
-    <Grid>
+    <DockPanel LastChildFill="True">
+        <DockPanel DockPanel.Dock="Bottom">
+            <TextBlock
+                Margin="5"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                DockPanel.Dock="Right"
+                Text="{Binding Message}" />
+            <Button
+                HorizontalAlignment="Left"
+                Command="{Binding NavigatedToCommand}"
+                CommandParameter="BookEditorView"
+                Style="{DynamicResource MaterialDesignIconButton}"
+                ToolTip="新建书籍">
+                <materialDesign:PackIcon Kind="PencilPlus" />
+            </Button>
+        </DockPanel>
         <ScrollViewer Style="{DynamicResource MaterialDesignScrollViewer}">
-
-
-            <!--<materialDesign:Card
-                    Width="133"
-                    Height="193"
-                    Margin="15"
-                    Padding="1"
-                    materialDesign:ElevationAssist.Elevation="Dp24"
-                    Background="Orange"
-                    Opacity="0.8">
-                    <Button
-                        Width="133"
-                        Height="193"
-                        Style="{DynamicResource MaterialDesignNumericUpDownButtonsStyle}">
-                        <Button.Content>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                </Grid.RowDefinitions>
-                                <TextBlock
-                                    FontFamily="Source Han Serif SC Heavy"
-                                    FontSize="16"
-                                    FontWeight="DemiBold"
-                                    Foreground="White"
-                                    Text=".Net从入门到入土"
-                                    TextWrapping="Wrap"
-                                    ToolTip=".Net从入门到入土" />
-                                <Separator Grid.Row="1" />
-                                <DockPanel Grid.Row="2" LastChildFill="False">
-                                    <TextBlock
-                                        DockPanel.Dock="Right"
-                                        FontFamily="KaiTi"
-                                        Foreground="White"
-                                        Text="  著"
-                                        TextWrapping="Wrap" />
-                                    <TextBlock
-                                        DockPanel.Dock="Right"
-                                        FontFamily="KaiTi"
-                                        Foreground="White"
-                                        Text="蔺太微"
-                                        TextWrapping="Wrap" />
-                                </DockPanel>
-                            </Grid>
-                        </Button.Content>
-                    </Button>
-                </materialDesign:Card>-->
-
             <ItemsControl ItemTemplate="{StaticResource BookCoverTemplate}" ItemsSource="{Binding BookList}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -122,8 +102,6 @@
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
-
-
         </ScrollViewer>
-    </Grid>
+    </DockPanel>
 </UserControl>

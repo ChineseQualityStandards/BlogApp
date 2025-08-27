@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlogApp.Core.Models
+namespace BlogApp.Core.Models 
 {
     /// <summary>
     /// EF Core返回状态信息

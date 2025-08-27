@@ -23,9 +23,21 @@ namespace BlogApp.Core.Models
         /// </summary>
         public string? Title { get; set; }
         /// <summary>
-        /// 作者
+        /// 作者Id
         /// </summary>
         public int AuthorId {  get; set; }
+        /// <summary>
+        /// 作者
+        /// </summary>
+        public string? Author {  get; set; }
+        /// <summary>
+        /// 封面颜色
+        /// </summary>
+        public string? Color { get; set; } = "#FFFFFFFF";
+        /// <summary>
+        /// 字体颜色
+        /// </summary>
+        public string? Foreground { get; set; } = "#FF000000";
         /// <summary>
         /// 描述
         /// </summary>

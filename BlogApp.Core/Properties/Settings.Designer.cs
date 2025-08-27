@@ -34,5 +34,17 @@ namespace BlogApp.Core.Properties {
                 this["CurrentUser"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CurrentBook {
+            get {
+                return ((string)(this["CurrentBook"]));
+            }
+            set {
+                this["CurrentBook"] = value;
+            }
+        }
     }
 }

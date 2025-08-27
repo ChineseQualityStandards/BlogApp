@@ -5,10 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using BlogApp.Core.AppSeesions;
+using BlogApp.Core.AppSessions;
+using BlogApp.Core.Events;
 using BlogApp.Core.Models;
 using BlogApp.Core.Mvvm;
 using BlogApp.Modules.ModuleName.Views;
+using BlogApp.Services;
 using BlogApp.Services.Interfaces;
 
 namespace BlogApp.Modules.ModuleName.ViewModels
@@ -24,6 +26,8 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         private readonly IDatabaseService<User> _databaseService;
 
         private readonly IEncryptService _encryptService;
+
+        private readonly IEventAggregator _eventAggregator;
 
         #endregion
 
@@ -58,12 +62,13 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         #endregion
 
         #region 函数
-        public LoginViewModel(IContainerExtension container, IRegionManager regionManager, IDatabaseService<User> databaseService, IEncryptService encryptService) : base(regionManager)
+        public LoginViewModel(IContainerExtension container, IRegionManager regionManager, IDatabaseService<User> databaseService, IEncryptService encryptService, IEventAggregator eventAggregator) : base(regionManager)
         {
             _container = container;
             _regionManager = regionManager;
             _databaseService = databaseService;
             _encryptService = encryptService;
+            _eventAggregator = eventAggregator;
             DelegateCommand = new DelegateCommand<string>(DelegateMethod);
             LoginCommand = new DelegateCommand<PasswordBox>(LoginMethodAsync);
 
@@ -102,11 +107,12 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             else
             {
                 // 3. 检查邮箱是否已存在
-                var emailExistsResult = await _databaseService.Get("Email", User.Email);
+                var emailExistsResult = await _databaseService.Get(nameof(User.Email), User.Email);
                 if (emailExistsResult.IsSuccessful && emailExistsResult.Value != null && emailExistsResult.Value.Any())
                 {
                     var tempUser = emailExistsResult.Value.FirstOrDefault();
-                    if(tempUser.PALLTHash.Equals(_encryptService.EncryptPassword(box.Password, tempUser.LastLoginTime)))
+                    //if(tempUser.PALLTHash.Equals(_encryptService.EncryptPassword(box.Password, tempUser.LastLoginTime)))
+                    if(_encryptService.VerifyPassword(box.Password, tempUser.PALLTHash, tempUser.LastLoginTime))
                     {
                         //更新登录时间
                         User = tempUser;
@@ -114,27 +120,35 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                         User.LastLoginTime = DateTime.Now;
                         User.PALLTHash = _encryptService.EncryptPassword(box.Password, User.LastLoginTime);
                         _databaseService.Update(User);
-
+                        //密码清零
+                        User.PACTHash = string.Empty;
+                        User.PALLTHash = string.Empty;
+                        tempUser = null;
                         // 用户数据持久化
-                        AppSeesion.SetUser(User);
+                        AppSession.SetUser(User);
 
-                        // LoginWindow区域管理权限要转移给MainWindow
                         var loginWindow = Application.Current.MainWindow;
                         var mainWindow = _container.Resolve<MainWindow>();
                         // 让新打开的窗口成为程序的MainWindow
                         Application.Current.MainWindow = mainWindow;
+                        // LoginWindow区域管理权限要转移给MainWindow
                         Prism.Navigation.Regions.RegionManager.SetRegionManager(mainWindow, _regionManager);
 
                         loginWindow.Close();
                         mainWindow.Show();
+
+                        // 发布用户登录事件
+                        _eventAggregator.GetEvent<UserLoggedInEvent>().Publish();
                     }
                     else
                     {
+                        
                         SetErrorMessage("账号或密码错误");
                     }
                 }
                 else
                 {
+                    
                     SetErrorMessage("该邮箱不存在");
                     return;
                 }

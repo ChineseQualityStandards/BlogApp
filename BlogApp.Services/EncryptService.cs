@@ -34,7 +34,8 @@ namespace BlogApp.Services
 
         public bool VerifyPassword(string inputPassword, string storedPassword, DateTime saltTime)
         {
-            throw new NotImplementedException();
+            string encryptedInput = EncryptPassword(inputPassword, saltTime);
+            return encryptedInput.Equals(storedPassword, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
