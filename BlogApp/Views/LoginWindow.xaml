@@ -66,7 +66,7 @@
                 </DockPanel>
             </materialDesign:Flipper.FrontContent>
             <materialDesign:Flipper.BackContent>
-                <ContentControl prism:RegionManager.RegionName="{x:Static core:RegionNames.SqlServerSettingRegion}" />
+                <ContentControl prism:RegionManager.RegionName="{x:Static core:RegionNames.DatabaseSettingRegion}" />
             </materialDesign:Flipper.BackContent>
         </materialDesign:Flipper>
     </Grid>

@@ -31,7 +31,7 @@ namespace BlogApp.Modules.ModuleName
             _regionManager.RegisterViewWithRegion(RegionNames.LeftDrawerRegion, "LeftDrawerView");
             _regionManager.RegisterViewWithRegion(RegionNames.PopupRegion, "LoginView");
             _regionManager.RegisterViewWithRegion(RegionNames.TitleRegion, "TitleView");
-            _regionManager.RegisterViewWithRegion(RegionNames.SqlServerSettingRegion, "SqlServerSettingView");
+            _regionManager.RegisterViewWithRegion(RegionNames.DatabaseSettingRegion, "DatabaseSettingView");
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
@@ -45,7 +45,7 @@ namespace BlogApp.Modules.ModuleName
             containerRegistry.RegisterForNavigation<LeftDrawerView>();
             containerRegistry.RegisterForNavigation<LoginView>();
             containerRegistry.RegisterForNavigation<TitleView>();
-            containerRegistry.RegisterForNavigation<SqlServerSettingView>();
+            containerRegistry.RegisterForNavigation<DatabaseSettingView>();
             containerRegistry.RegisterForNavigation<ViewA>();
         }
     }

@@ -31,6 +31,6 @@ namespace BlogApp.Core.Constants
         /// <summary>
         /// 数据库设置区域
         /// </summary>
-        public const string SqlServerSettingRegion = "SqlServerSettingRegion";
+        public const string DatabaseSettingRegion = "DatabaseSettingRegion";
     }
 }

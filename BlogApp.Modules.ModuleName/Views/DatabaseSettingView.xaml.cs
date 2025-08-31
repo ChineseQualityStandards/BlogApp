@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace BlogApp.Modules.ModuleName.Views
 {
     /// <summary>
-    /// SqlServerSettingView.xaml 的交互逻辑
+    /// DatabaseSettingView.xaml 的交互逻辑
     /// </summary>
-    public partial class SqlServerSettingView : UserControl
+    public partial class DatabaseSettingView : UserControl
     {
-        public SqlServerSettingView()
+        public DatabaseSettingView()
         {
             InitializeComponent();
         }
