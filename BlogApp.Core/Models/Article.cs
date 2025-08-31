@@ -18,6 +18,14 @@ namespace BlogApp.Core.Models
         [Key]
         public int Id { get; set; }
         /// <summary>
+        /// 所属书目
+        /// </summary>
+        public int BookId { get; set; }
+        /// <summary>
+        /// 排序Id
+        /// </summary>
+        public int OrderIndex { get; set; } 
+        /// <summary>
         /// 标题
         /// </summary>
         public string? Title { get; set; }
@@ -25,10 +33,6 @@ namespace BlogApp.Core.Models
         /// 文本
         /// </summary>
         public string? Text { get; set; }
-        /// <summary>
-        /// 所属书目
-        /// </summary>
-        public int? BookId { get; set; }
         /// <summary>
         /// 创建时间
         /// </summary>

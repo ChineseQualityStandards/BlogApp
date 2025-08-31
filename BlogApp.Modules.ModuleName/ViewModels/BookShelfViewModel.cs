@@ -5,6 +5,7 @@ using BlogApp.Core.AppSessions;
 using BlogApp.Core.Constants;
 using BlogApp.Core.Models;
 using BlogApp.Core.Mvvm;
+using BlogApp.Services;
 using BlogApp.Services.Interfaces;
 
 namespace BlogApp.Modules.ModuleName.ViewModels
@@ -16,6 +17,8 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         private readonly IRegionManager _regionManager;
 
         private readonly IDatabaseService<Book> _databaseService;
+
+        private readonly IArticleService _articleService;
 
         #endregion
 
@@ -43,35 +46,27 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
         #region 命令
 
+        public DelegateCommand<int?> DeleteCommand { get; set; }
+        public DelegateCommand<int?> EnterCommand { get; set; }
         public DelegateCommand<string> NavigatedToCommand { get; set; }
         public DelegateCommand<int?> ModifyCommand { get; set; }
-        public DelegateCommand<int?> DeleteCommand { get; set; }
 
         #endregion
 
         #region 函数
 
-        public BookShelfViewModel(IRegionManager regionManager, IDatabaseService<Book> databaseService) : base(regionManager)
+        public BookShelfViewModel(IRegionManager regionManager, IDatabaseService<Book> databaseService, IArticleService articleService) : base(regionManager)
         {
             _regionManager = regionManager;
             _databaseService = databaseService;
+            _articleService = articleService;
 
             // 初始化命令
+            DeleteCommand = new DelegateCommand<int?>(DeleteBook);
+            EnterCommand = new DelegateCommand<int?>(EnterBook);
             NavigatedToCommand = new DelegateCommand<string>(NavigatedContentRegionTo);
             ModifyCommand = new DelegateCommand<int?>(ModifyBook);
-            DeleteCommand = new DelegateCommand<int?>(DeleteBook);
 
-        }
-
-        private void ModifyBook(int? bookId)
-        {
-            //SetMessage($"修改书籍: {bookId}");
-            // 这里实现修改逻辑
-            SelectedBook = BookList.Where(o => o.Id.Equals(bookId.Value)).FirstOrDefault();
-
-            AppSession.SetBook(SelectedBook);
-
-            NavigatedContentRegionTo("BookEditorView");
         }
 
         /// <summary>
@@ -92,10 +87,25 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 return;
             }
             var result = MessageBox.Show($"确定要删除《{SelectedBook.Title}》吗？", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes) 
+            if (result == MessageBoxResult.Yes)
             {
                 try
                 {
+                    // 先删除所有相关章节
+                    var articlesResult = await _articleService.GetArticlesByBookIdAsync(bookId.Value, false);
+                    if (articlesResult.IsSuccessful && articlesResult.Value != null && articlesResult.Value.Count > 0)
+                    {
+                        foreach (var article in articlesResult.Value)
+                        {
+                            var deleteArticleResult = await _articleService.DeleteArticleAsync(article.Id);
+                            if (!deleteArticleResult.IsSuccessful)
+                            {
+                                SetMessage($"删除章节 '{article.Title}' 失败: {deleteArticleResult.Code}");
+                                // 可以选择继续删除其他章节，或者中断操作
+                            }
+                        }
+                    }
+
                     var deleteResult = await _databaseService.Delete(SelectedBook);
 
                     if (deleteResult.IsSuccessful)
@@ -122,6 +132,41 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             }
         }
 
+        private void EnterBook(int? bookId)
+        {
+            SetMessage($"{bookId.Value}");
+            if (!bookId.HasValue)
+            {
+                SetMessage("无效的书籍ID");
+                return;
+            }
+            SelectedBook = BookList?.FirstOrDefault(o => o.Id.Equals(bookId.Value));
+            if (SelectedBook == null)
+            {
+                SetMessage("要打开的书籍不存在");
+                return;
+            }
+            try
+            {
+                //SelectedBook = BookList.FirstOrDefault(o => o.Id.Equals(bookId.Value));
+
+                //AppSession.SetBook(SelectedBook);
+
+                // 创建导航参数，包含BookId
+                var parameters = new NavigationParameters
+                {
+                    { "BookId", bookId.Value }
+                };
+
+                // 导航到BookContentView并传递参数
+                _regionManager.RequestNavigate(RegionNames.ContentRegion, "BookContentView", parameters);
+            }
+            catch (Exception ex)
+            {
+                SetMessage(ex.Message);
+            }
+        }
+
         public override async void Load()
         {
             base.Load();
@@ -140,6 +185,21 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 SetMessage("获取书籍数据失败。");
             }
         }
+
+        private void ModifyBook(int? bookId)
+        {
+            //SetMessage($"修改书籍: {bookId}");
+            // 这里实现修改逻辑
+            SelectedBook = BookList.Where(o => o.Id.Equals(bookId.Value)).FirstOrDefault();
+
+            AppSession.SetBook(SelectedBook);
+
+            NavigatedContentRegionTo("BookEditorView");
+        }
+
+
+
+        
 
         /// <summary>
         /// 导航到目标页面

@@ -17,23 +17,18 @@
             Margin="5"
             DockPanel.Dock="Top"
             LastChildFill="True">
-            <ComboBox
-                x:Name="BookList"
-                Width="136"
-                DockPanel.Dock="Left"
-                SelectedIndex="0"
-                Style="{DynamicResource MaterialDesignOutlinedComboBox}">
-                <ComboBoxItem>C#从入门到入土</ComboBoxItem>
-                <ComboBoxItem>C#基础知识归纳</ComboBoxItem>
-                <ComboBoxItem>C语言</ComboBoxItem>
-            </ComboBox>
             <Button
                 Height="40"
                 Margin="5"
+                Command="{Binding SendCommand}"
                 Content="发布文章"
                 DockPanel.Dock="Right" />
-            <TextBox Style="{DynamicResource MaterialDesignOutlinedTextBox}" />
+            <TextBox
+                materialDesign:HintAssist.Hint="请输入文章标题"
+                Style="{DynamicResource MaterialDesignOutlinedTextBox}"
+                Text="{Binding Article.Title}" />
         </DockPanel>
+        <TextBlock DockPanel.Dock="Bottom" Text="{Binding Message}" />
         <Grid Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
@@ -45,13 +40,13 @@
                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 Style="{DynamicResource MaterialDesignOutlinedTextBox}"
-                Text="{Binding MdText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Text="{Binding Article.Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             <Border
                 Grid.Column="1"
                 Padding="5"
                 BorderBrush="Gray"
                 BorderThickness="1">
-                <mdxam:MarkdownScrollViewer Markdown="{Binding MdText, Mode=TwoWay}" />
+                <mdxam:MarkdownScrollViewer Markdown="{Binding Article.Text, Mode=TwoWay}" />
             </Border>
         </Grid>
     </DockPanel>

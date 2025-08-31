@@ -28,5 +28,9 @@ namespace BlogApp.Core.Constants
         /// 公告页
         /// </summary>
         public const string AnnRegion = "AnnRegion";
+        /// <summary>
+        /// 数据库设置区域
+        /// </summary>
+        public const string SqlServerSettingRegion = "SqlServerSettingRegion";
     }
 }

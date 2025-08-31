@@ -8,6 +8,7 @@ using BlogApp.Services;
 using BlogApp.Services.Interfaces;
 using BlogApp.Views;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace BlogApp
 {
@@ -16,6 +17,14 @@ namespace BlogApp
     /// </summary>
     public partial class App
     {
+        private IConfiguration? _configuration;
+
+        public App()
+        {
+            // 构建配置对象
+            _configuration = new ConfigurationBuilder().SetBasePath(AppDomain.CurrentDomain.BaseDirectory).AddJsonFile("appsettings.json", optional:false, reloadOnChange:true).Build();
+        }
+
         /// <summary>
         /// 创建主应用
         /// </summary>
@@ -42,8 +51,8 @@ namespace BlogApp
         /// <exception cref="NotImplementedException">注册容器</exception>
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            // 配置 DbContextOptions
-            var connectionString = "Data Source=LEGION\\SQLEXPRESS;Initial Catalog=MarkdownEditor;User ID=sa;Password=1234;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False";
+            // 从配置中读取连接字符串
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
             containerRegistry.RegisterInstance<DbContextOptions<BlogAppContext>>(new DbContextOptionsBuilder<BlogAppContext>().UseSqlServer(connectionString).Options);
 
             // 注册 DbContext
@@ -52,12 +61,17 @@ namespace BlogApp
                 var option = Container.Resolve<DbContextOptions<BlogAppContext>>();
                 return new BlogAppContext(option);
             });
-
+            // 注册通用数据库服务 
             containerRegistry.RegisterSingleton<IDatabaseService<User>, DatabaseService<User>>();
             containerRegistry.RegisterSingleton<IDatabaseService<Book>, DatabaseService<Book>>();
+            containerRegistry.RegisterSingleton<IDatabaseService<Article>, DatabaseService<Article>>();
+
+            // 注册文章专用服务
+            containerRegistry.RegisterSingleton<IArticleService, ArticleService>();
+            // 注册其他服务
             containerRegistry.RegisterSingleton<IEncryptService, EncryptService>();
             //containerRegistry.RegisterSingleton<IMessageService, MessageService>();
-            
+
         }
 
         /// <summary>

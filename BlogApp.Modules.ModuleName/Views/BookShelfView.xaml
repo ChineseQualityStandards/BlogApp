@@ -39,6 +39,8 @@
                 <Button
                     Width="133"
                     Height="193"
+                    Command="{Binding DataContext.EnterCommand, Source={x:Reference Name=BookShelfUserControl}}"
+                    CommandParameter="{Binding Id}"
                     Style="{DynamicResource MaterialDesignNumericUpDownButtonsStyle}">
                     <Button.Content>
                         <Grid>
