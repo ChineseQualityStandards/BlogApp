@@ -9,6 +9,9 @@ using BlogApp.Services.Interfaces;
 using BlogApp.Views;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Prism.Ioc;
+using Prism.Modularity;
+using Prism.Commands;
 
 namespace BlogApp
 {

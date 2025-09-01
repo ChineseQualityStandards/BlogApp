@@ -57,6 +57,8 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
         public DelegateCommand<Article> ArticleSelectedCommand { get; private set; }
 
+
+        public DelegateCommand<Article> EditCommand { get; private set; }
         public DelegateCommand<Article> MoveUpCommand { get; private set; }
         public DelegateCommand<Article> MoveDownCommand { get; private set; }
         public DelegateCommand<Article> DeleteCommand { get; private set; }
@@ -80,6 +82,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 }
             });
 
+            EditCommand = new DelegateCommand<Article>(EditArticle);
             MoveUpCommand = new DelegateCommand<Article>(MoveArticleUp);
             MoveDownCommand = new DelegateCommand<Article>(MoveArticleDown);
             DeleteCommand = new DelegateCommand<Article>(DeleteArticle);
@@ -159,6 +162,36 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             }
             catch (Exception ex)
             {
+                SetMessage(ex.Message);
+            }
+        }
+
+        private async void EditArticle(Article article)
+        {
+            try
+            {
+                // 调用通用数据库服务获取完整的文章内容（包括Text字段）
+                var result = await _articleService.Get(article.Id);
+                if (result.Value.Any())
+                {
+                    article= result.Value.First();
+                    if (article != null)
+                    {
+                        var parameters = new NavigationParameters
+                    {
+                        { "Article", article }
+                    };
+                        _regionManager.RequestNavigate(RegionNames.ContentRegion, "ArticleEditorView", parameters);
+                    }
+                }
+                else
+                {
+                    throw new Exception("无法加载文章内容");
+                }
+            }
+            catch (Exception ex)
+            {
+
                 SetMessage(ex.Message);
             }
         }

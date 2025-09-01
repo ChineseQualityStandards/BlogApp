@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using BlogApp.Core.Mvvm;
+using Prism.Commands;
+using Prism.Ioc;
+using Prism.Navigation.Regions;
 
 namespace BlogApp.ViewModels
 {

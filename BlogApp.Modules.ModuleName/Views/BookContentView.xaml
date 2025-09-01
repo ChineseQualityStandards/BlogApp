@@ -49,6 +49,10 @@
                                 Command="{Binding MoveDownCommand}"
                                 CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                 Header="下移" />
+                            <MenuItem
+                                Command="{Binding EditCommand}"
+                                CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                Header="修改" />
                             <Separator />
                             <MenuItem
                                 Command="{Binding DeleteCommand}"

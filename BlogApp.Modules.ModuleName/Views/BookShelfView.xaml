@@ -56,7 +56,7 @@
                                 Foreground="{Binding Foreground}"
                                 Text="{Binding Title}"
                                 TextWrapping="Wrap"
-                                ToolTip="{Binding Title}" />
+                                ToolTip="{Binding Description}" />
                             <Separator Grid.Row="1" />
                             <DockPanel Grid.Row="2" LastChildFill="False">
                                 <TextBlock

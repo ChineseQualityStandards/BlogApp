@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using BlogApp.Core.AppSessions;
 using BlogApp.Core.Events;
 using BlogApp.Core.Models;
 using BlogApp.Core.Mvvm;
 using BlogApp.Modules.ModuleName.Views;
-using BlogApp.Services;
 using BlogApp.Services.Interfaces;
+using Prism.Commands;
+using Prism.Ioc;
 
 namespace BlogApp.Modules.ModuleName.ViewModels
 {
-    public class LoginViewModel : RegionViewModelBase
+    public class LoginViewModel : RegionViewModelBase, IRegionMemberLifetime
     {
         #region 字段
 
@@ -58,6 +54,8 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         public DelegateCommand<string> DelegateCommand { get; set; }
 
         public DelegateCommand<PasswordBox> LoginCommand { get; set; }
+
+        public bool KeepAlive => false;
 
         #endregion
 
