@@ -80,7 +80,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                     }
                     Article.CreatedDate = DateTime.Now;
                     Article.UpdatedDate = Article.CreatedDate;
-                    var result = await _articleService.AddArticleAsync(Article);
+                    await _articleService.AddArticleAsync(Article);
                 }
                 else
                 {
@@ -95,7 +95,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                         return;
                     }
                     Article.UpdatedDate = DateTime.Now;
-                    var result = _articleService.Update(Article);
+                    await _articleService.Update(Article);
                 }
                 // 创建导航参数，包含BookId
                 var parameters = new NavigationParameters

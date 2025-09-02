@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Prism.Ioc;
 using Prism.Modularity;
 using Prism.Commands;
+using BlogApp.Core.Models.BlogApp.Core.DbContexts;
 
 namespace BlogApp
 {
@@ -68,24 +69,39 @@ namespace BlogApp
                     return;
                 }
 
-                DbContextOptions<BlogAppContext> options;
-
+                // 注册 DbContextOptions（单例）
                 if (databaseProvider != null && databaseProvider.Equals("MySql", StringComparison.OrdinalIgnoreCase))
                 {
                     // 使用 MySQL
-                    options = new DbContextOptionsBuilder<BlogAppContext>()
+                    containerRegistry.RegisterSingleton<DbContextOptions<BlogAppContext>>(() =>
+                        new DbContextOptionsBuilder<BlogAppContext>()
                         .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-                        .Options;
+                        .Options
+                    );
                 }
                 else
                 {
                     // 默认使用 SQL Server
-                    options = new DbContextOptionsBuilder<BlogAppContext>()
-                        .UseSqlServer(connectionString)
-                        .Options;
+                    containerRegistry.RegisterSingleton<DbContextOptions<BlogAppContext>>(() =>
+                        new DbContextOptionsBuilder<BlogAppContext>()
+                            .UseSqlServer(connectionString)
+                            .Options
+                    );
                 }
 
-                containerRegistry.RegisterInstance(options);
+                // 注册 DbContextFactory（推荐解决方案）
+                containerRegistry.Register<IDbContextFactory<BlogAppContext>>(c =>
+                {
+                    var options = c.Resolve<DbContextOptions<BlogAppContext>>();
+                    return new BlogAppContextFactory(options);
+                });
+
+                // 注册 DbContext（保持向后兼容性，但使用工厂创建）
+                containerRegistry.Register<BlogAppContext>(c =>
+                {
+                    var factory = c.Resolve<IDbContextFactory<BlogAppContext>>();
+                    return factory.CreateDbContext();
+                });
 
 
                 // 注册 DbContext
@@ -95,12 +111,12 @@ namespace BlogApp
                     return new BlogAppContext(option);
                 });
                 // 注册通用数据库服务 
-                containerRegistry.RegisterSingleton<IDatabaseService<User>, DatabaseService<User>>();
-                containerRegistry.RegisterSingleton<IDatabaseService<Book>, DatabaseService<Book>>();
-                containerRegistry.RegisterSingleton<IDatabaseService<Article>, DatabaseService<Article>>();
+                containerRegistry.Register<IDatabaseService<User>, DatabaseService<User>>();
+                containerRegistry.Register<IDatabaseService<Book>, DatabaseService<Book>>();
+                containerRegistry.Register<IDatabaseService<Article>, DatabaseService<Article>>();
 
-                // 注册文章专用服务
-                containerRegistry.RegisterSingleton<IArticleService, ArticleService>();
+                // 注册文章专用服务 - 改为瞬时生命周期
+                containerRegistry.Register<IArticleService, ArticleService>();
                 // 注册其他服务
                 containerRegistry.RegisterSingleton<IEncryptService, EncryptService>();
                 //containerRegistry.RegisterSingleton<IMessageService, MessageService>();

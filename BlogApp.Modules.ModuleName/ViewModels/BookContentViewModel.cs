@@ -75,7 +75,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             SelectedArticle = new Article();
 
             // 初始化 List 属性
-            List = new ObservableCollection<Article>();
+            List = [];
 
             AddCommand = new DelegateCommand(AddMethod);
 
@@ -145,14 +145,14 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 {
                     SetMessage($"加载文章列表失败: {result.Code}");
                     // 确保 List 不为 null
-                    List = new ObservableCollection<Article>();
+                    List = [];
                 }
             }
             catch (Exception ex)
             {
                 SetMessage($"加载文章列表时发生错误: {ex.Message}");
                 // 确保 List 不为 null
-                List = new ObservableCollection<Article>();
+                List = [];
             }
         }
 
@@ -342,8 +342,8 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 
 
             }
-            if (SelectedArticle == null)
-                SelectedArticle = new Article();
+            // 使用复合分配
+            SelectedArticle ??= new Article();
             
         }
 

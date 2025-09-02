@@ -14,23 +14,20 @@ namespace BlogApp.Services
     /// <summary>
     /// 文章服务实现
     /// </summary>
-    public class ArticleService : DatabaseService<Article>, IArticleService
+    public class ArticleService(IDbContextFactory<BlogAppContext> contextFactory) : DatabaseService<Article>(contextFactory), IArticleService
     {
-        private readonly BlogAppContext _context;
-
-        public ArticleService(BlogAppContext context) : base(context)
-        {
-            _context = context;
-        }
+        private readonly IDbContextFactory<BlogAppContext> _contextFactory = contextFactory;
 
         /// <summary>
         /// 获取指定书目的文章列表（按OrderIndex排序）
         /// </summary>
         public async Task<EFMessage<ObservableCollection<Article>>> GetArticlesByBookIdAsync(int bookId, bool includeText = false)
         {
+            // 简单的using手段 相当于 using(var context = _contextFactory.CreateDbContext()){}
+            using var context = _contextFactory.CreateDbContext();
             try
             {
-                IQueryable<Article> query = _context.Articles
+                IQueryable<Article> query = context.Articles
                     .Where(a => a.BookId == bookId)
                     .OrderBy(a => a.OrderIndex)
                     .ThenBy(a => a.CreatedDate);
@@ -65,7 +62,8 @@ namespace BlogApp.Services
         /// </summary>
         public async Task<EFMessage<Article>> AddArticleAsync(Article article, int? insertAfterId = null)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var context = _contextFactory.CreateDbContext();
+            using var transaction = await context.Database.BeginTransactionAsync();
 
             try
             {
@@ -77,11 +75,11 @@ namespace BlogApp.Services
                 if (insertAfterId.HasValue)
                 {
                     // 插入到指定文章之后
-                    var afterArticle = await _context.Articles.FindAsync(insertAfterId.Value);
+                    var afterArticle = await context.Articles.FindAsync(insertAfterId.Value);
                     if (afterArticle != null)
                     {
                         // 获取插入位置之后的所有文章
-                        var articlesToUpdate = await _context.Articles
+                        var articlesToUpdate = await context.Articles
                             .Where(a => a.BookId == article.BookId && a.OrderIndex > afterArticle.OrderIndex)
                             .OrderBy(a => a.OrderIndex)
                             .ToListAsync();
@@ -94,7 +92,7 @@ namespace BlogApp.Services
                         {
                             art.OrderIndex += 1;
                             art.UpdatedDate = DateTime.UtcNow;
-                            _context.Articles.Update(art);
+                            context.Articles.Update(art);
                         }
                     }
                     else
@@ -135,16 +133,17 @@ namespace BlogApp.Services
         /// </summary>
         public async Task<EFMessage<bool>> MoveArticleAsync(int articleId, int newPosition)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var context = _contextFactory.CreateDbContext();
+            using var transaction = await context.Database.BeginTransactionAsync();
 
             try
             {
-                var article = await _context.Articles.FindAsync(articleId);
+                var article = await context.Articles.FindAsync(articleId);
                 if (article == null)
                     return new EFMessage<bool>(false, "文章不存在", false);
 
                 // 获取该书目下的所有文章
-                var articles = await _context.Articles
+                var articles = await context.Articles
                     .Where(a => a.BookId == article.BookId)
                     .OrderBy(a => a.OrderIndex)
                     .ToListAsync();
@@ -172,10 +171,10 @@ namespace BlogApp.Services
                 {
                     articles[i].OrderIndex = i;
                     articles[i].UpdatedDate = DateTime.UtcNow;
-                    _context.Articles.Update(articles[i]);
+                    context.Articles.Update(articles[i]);
                 }
 
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return new EFMessage<bool>(true, "移动成功", true);
@@ -192,12 +191,13 @@ namespace BlogApp.Services
         /// </summary>
         public async Task<EFMessage<bool>> SwapArticlesAsync(int articleId1, int articleId2)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var context = _contextFactory.CreateDbContext();
+            using var transaction = await context.Database.BeginTransactionAsync();
 
             try
             {
-                var article1 = await _context.Articles.FindAsync(articleId1);
-                var article2 = await _context.Articles.FindAsync(articleId2);
+                var article1 = await context.Articles.FindAsync(articleId1);
+                var article2 = await context.Articles.FindAsync(articleId2);
 
                 if (article1 == null || article2 == null)
                     return new EFMessage<bool>(false, "文章不存在", false);
@@ -205,18 +205,15 @@ namespace BlogApp.Services
                 if (article1.BookId != article2.BookId)
                     return new EFMessage<bool>(false, "文章不在同一书目中", false);
 
-                // 交换OrderIndex
-                int temp = article1.OrderIndex;
-                article1.OrderIndex = article2.OrderIndex;
-                article2.OrderIndex = temp;
-
+                // 交换OrderIndex 使用元值交换符
+                (article2.OrderIndex, article1.OrderIndex) = (article1.OrderIndex, article2.OrderIndex);
                 article1.UpdatedDate = DateTime.UtcNow;
                 article2.UpdatedDate = DateTime.UtcNow;
 
-                _context.Articles.Update(article1);
-                _context.Articles.Update(article2);
+                context.Articles.Update(article1);
+                context.Articles.Update(article2);
 
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return new EFMessage<bool>(true, "交换成功", true);
@@ -233,11 +230,12 @@ namespace BlogApp.Services
         /// </summary>
         public async Task<EFMessage<Article>> DeleteArticleAsync(int articleId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var context = _contextFactory.CreateDbContext();
+            using var transaction = await context.Database.BeginTransactionAsync();
 
             try
             {
-                var article = await _context.Articles.FindAsync(articleId);
+                var article = await context.Articles.FindAsync(articleId);
                 if (article == null)
                     return new EFMessage<Article>(false, "文章不存在", null);
 
@@ -250,7 +248,7 @@ namespace BlogApp.Services
                 if (result.IsSuccessful)
                 {
                     // 重新排序剩余文章
-                    var remainingArticles = await _context.Articles
+                    var remainingArticles = await context.Articles
                         .Where(a => a.BookId == bookId && a.OrderIndex > deletedOrderIndex)
                         .OrderBy(a => a.OrderIndex)
                         .ToListAsync();
@@ -259,10 +257,10 @@ namespace BlogApp.Services
                     {
                         art.OrderIndex -= 1;
                         art.UpdatedDate = DateTime.UtcNow;
-                        _context.Articles.Update(art);
+                        context.Articles.Update(art);
                     }
 
-                    await _context.SaveChangesAsync();
+                    await context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
                     return new EFMessage<Article>(true, "删除成功", article);
@@ -285,11 +283,12 @@ namespace BlogApp.Services
         /// </summary>
         public async Task<EFMessage<bool>> ReorderArticlesAsync(int bookId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var context = _contextFactory.CreateDbContext();
+            using var transaction = await context.Database.BeginTransactionAsync();
 
             try
             {
-                var articles = await _context.Articles
+                var articles = await context.Articles
                     .Where(a => a.BookId == bookId)
                     .OrderBy(a => a.OrderIndex)
                     .ThenBy(a => a.CreatedDate)
@@ -299,10 +298,10 @@ namespace BlogApp.Services
                 {
                     articles[i].OrderIndex = i;
                     articles[i].UpdatedDate = DateTime.UtcNow;
-                    _context.Articles.Update(articles[i]);
+                    context.Articles.Update(articles[i]);
                 }
 
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return new EFMessage<bool>(true, "重新排序成功", true);
@@ -319,8 +318,9 @@ namespace BlogApp.Services
         /// </summary>
         private async Task SetArticleOrderToEnd(Article article)
         {
+            using var context = _contextFactory.CreateDbContext();
             // 获取当前最大的OrderIndex值
-            int maxOrderIndex = await _context.Articles
+            int maxOrderIndex = await context.Articles
                 .Where(a => a.BookId == article.BookId)
                 .MaxAsync(a => (int?)a.OrderIndex) ?? -1;
 
