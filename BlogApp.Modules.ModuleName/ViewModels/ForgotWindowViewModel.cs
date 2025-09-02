@@ -56,7 +56,8 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                     window?.Close();
                     break;
                 case "minimize":
-                    window.WindowState = WindowState.Minimized;
+                    if(window != null)
+                        window.WindowState = WindowState.Minimized;
                     break;
                 default:
                     break;

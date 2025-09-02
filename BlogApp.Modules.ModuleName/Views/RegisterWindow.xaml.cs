@@ -40,7 +40,7 @@ namespace BlogApp.Modules.ModuleName.Views
 
         
 
-        private void MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private new void MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();
         }

@@ -37,11 +37,11 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             set { SetProperty(ref account, value); }
         }
 
-        private User user;
+        private User? user;
         /// <summary>
         /// 用户属性
         /// </summary>
-        public User User
+        public User? User
         {
             get { return user; }
             set { SetProperty(ref user, value); }
@@ -67,6 +67,8 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             _databaseService = databaseService;
             _encryptService = encryptService;
             _eventAggregator = eventAggregator;
+            User = new User();
+
             DelegateCommand = new DelegateCommand<string>(DelegateMethod);
             LoginCommand = new DelegateCommand<PasswordBox>(LoginMethodAsync);
 
@@ -98,7 +100,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         private async void LoginMethodAsync(PasswordBox box)
         {
 
-            if (string.IsNullOrEmpty(User.Email) || string.IsNullOrEmpty(box.Password))
+            if (string.IsNullOrEmpty(User?.Email) || string.IsNullOrEmpty(box.Password))
             {
                 SetMessage("邮箱或密码不能为空");
             }
@@ -109,6 +111,16 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 if (emailExistsResult.IsSuccessful && emailExistsResult.Value != null && emailExistsResult.Value.Any())
                 {
                     var tempUser = emailExistsResult.Value.FirstOrDefault();
+                    if (tempUser == null)
+                    {
+                        SetMessage("获取不到用户数据。");
+                        return;
+                    }
+                    if(string.IsNullOrEmpty(tempUser.PALLTHash))
+                    {
+                        SetMessage("获取不到校验数据。");
+                        return;
+                    }
                     //if(tempUser.PALLTHash.Equals(_encryptService.EncryptPassword(box.Password, tempUser.LastLoginTime)))
                     if(_encryptService.VerifyPassword(box.Password, tempUser.PALLTHash, tempUser.LastLoginTime))
                     {
@@ -117,7 +129,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                         tempUser = null;
                         User.LastLoginTime = DateTime.Now;
                         User.PALLTHash = _encryptService.EncryptPassword(box.Password, User.LastLoginTime);
-                        _databaseService.Update(User);
+                        await _databaseService.Update(User);
                         //密码清零
                         User.PACTHash = string.Empty;
                         User.PALLTHash = string.Empty;

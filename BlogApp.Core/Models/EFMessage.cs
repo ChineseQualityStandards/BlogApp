@@ -24,12 +24,12 @@ namespace BlogApp.Core.Models
         /// </summary>
         public T? Value{ get; set; }
 
-        public EFMessage(bool isSuccessful,T t) : this(isSuccessful, "", t)
+        public EFMessage(bool isSuccessful,T? t) : this(isSuccessful, "", t)
         {
             
         }
 
-        public EFMessage(bool isSuccessful, string code, T t) 
+        public EFMessage(bool isSuccessful, string code, T? t) 
         {
             IsSuccessful = isSuccessful;
             Code = code;

@@ -32,7 +32,7 @@ namespace BlogApp.Modules.ModuleName.Views
                 ErrorMessage.Text = "";
         }
 
-        private void MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private new void MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();
         }

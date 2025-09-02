@@ -125,7 +125,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 catch (InvalidOperationException ex)
                 {
                     // 处理实体跟踪冲突
-                    SetMessage($"删除失败: 实体跟踪冲突。请稍后重试。");
+                    SetMessage($"删除失败: 实体跟踪冲突。请稍后重试。/r/n{ex.Message}");
                     // 可选: 重新加载数据以解决冲突
                     Load();
                 }
@@ -134,6 +134,11 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
         private void EnterBook(int? bookId)
         {
+            if(bookId == null)
+            {
+                SetMessage("无效的书籍ID");
+                return;
+            }
             SetMessage($"{bookId.Value}");
             if (!bookId.HasValue)
             {
@@ -170,6 +175,11 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         public override async void Load()
         {
             base.Load();
+            if(AppSession.User == null)
+            {
+                SetMessage("本地缓存用户信息为空，可能需要重启应用。");
+                return;
+            }
             var result = await _databaseService.Get("AuthorId", AppSession.User.ID.ToString());
             if (result != null && result.Value != null)
             {
@@ -188,10 +198,23 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
         private void ModifyBook(int? bookId)
         {
-            //SetMessage($"修改书籍: {bookId}");
+            if(BookList == null)
+            {
+                SetMessage("书籍列表不存在，可能需要重新加载列表。");
+                return ;
+            }
+            if (bookId == null)
+            {
+                SetMessage("无效的书籍ID");
+                return;
+            }
             // 这里实现修改逻辑
             SelectedBook = BookList.Where(o => o.Id.Equals(bookId.Value)).FirstOrDefault();
-
+            if (SelectedBook == null)
+            {
+                SetMessage("书籍不存在，可能需要重新选择书籍。");
+                return;
+            }
             AppSession.SetBook(SelectedBook);
 
             NavigatedContentRegionTo("BookEditorView");

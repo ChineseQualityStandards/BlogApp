@@ -110,7 +110,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         {
             bool flag = true;
             // 获取书籍信息
-            if (Book.Id != 0)
+            if (Book?.Id != 0)
                 flag = false;
             return flag;
         }
@@ -149,8 +149,8 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                     AuthorId = AppSession.User?.ID ?? 0
                 };
             }
-            ViewTitle = Book.Id == 0 ? "新建书籍" : "管理书籍";
-            SetErrorMessage(Book.Id == 0 ? "正在新建书籍……" : "管理已有书籍……");
+            ViewTitle = (Book?.Id == 0) ? "新建书籍" : "管理书籍";
+            SetErrorMessage((Book?.Id == 0) ? "正在新建书籍……" : "管理已有书籍……");
         }
 
         /// <summary>

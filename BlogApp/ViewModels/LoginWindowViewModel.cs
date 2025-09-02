@@ -30,12 +30,12 @@ namespace BlogApp.ViewModels
         }
 
 
-        private string settingIcon;
+        private string? settingIcon;
 
         /// <summary>
         /// 设置按钮的图标
         /// </summary>
-        public string SettingIcon
+        public string? SettingIcon
         {
             get { return settingIcon; }
             set { SetProperty(ref settingIcon, value); }
@@ -64,8 +64,15 @@ namespace BlogApp.ViewModels
             switch (command)
             {
                 case "setting":
-                    SettingIcon = SettingIcon.Equals("Settings") ? "ArrowLeft" : "Settings";
-                    IsFlipped = !IsFlipped;
+                    if(string.IsNullOrEmpty(SettingIcon))
+                    {
+                        SettingIcon = "Settings";
+                    }
+                    else
+                    {
+                        SettingIcon = SettingIcon.Equals("Settings") ? "ArrowLeft" : "Settings";
+                        IsFlipped = !IsFlipped;
+                    }
                     break;
                 case "close":
                     Application.Current.Shutdown();

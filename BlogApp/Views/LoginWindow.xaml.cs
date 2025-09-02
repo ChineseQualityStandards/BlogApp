@@ -24,7 +24,7 @@ namespace BlogApp.Views
             InitializeComponent();
         }
 
-        private void MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private new void MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();
         }

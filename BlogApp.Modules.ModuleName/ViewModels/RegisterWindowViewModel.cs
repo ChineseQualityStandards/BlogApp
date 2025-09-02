@@ -25,11 +25,11 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
         #region 属性
 
-        private User user;
+        private User? user;
         /// <summary>
         /// 用户属性
         /// </summary>
-        public User User
+        public User? User
         {
             get { return user; }
             set { SetProperty(ref user, value); }
@@ -68,7 +68,8 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                     window?.Close();
                     break;
                 case "minimize":
-                    window.WindowState = WindowState.Minimized;
+                    if(window != null)
+                        window.WindowState = WindowState.Minimized;
                     break;
                 default:
                     break;
@@ -80,7 +81,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             try
             {
                 // 1. 先验证必填字段
-                if (string.IsNullOrEmpty(User.Email))
+                if (string.IsNullOrEmpty(User?.Email))
                 {
                     SetErrorMessage("邮箱不能为空");
                     return;
@@ -128,7 +129,10 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 if (result.IsSuccessful)
                     DelegateMethod("close");
                 else
-                    SetErrorMessage(result.Code);
+                {
+                    if(result.Code != null)
+                        SetErrorMessage(result.Code);
+                }
             }
             catch (Exception ex)
             {

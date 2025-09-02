@@ -40,9 +40,9 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             set { SetProperty(ref list, value); }
         }
 
-        private Article _SelectedArticle;
+        private Article? _SelectedArticle;
 
-        public Article SelectedArticle
+        public Article? SelectedArticle
         {
             get { return _SelectedArticle; }
             set { SetProperty(ref _SelectedArticle, value); }
@@ -71,6 +71,11 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         {
             _regionManager = regionManager;
             _articleService = articleService;
+
+            SelectedArticle = new Article();
+
+            // 初始化 List 属性
+            List = new ObservableCollection<Article>();
 
             AddCommand = new DelegateCommand(AddMethod);
 
@@ -139,11 +144,15 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 else
                 {
                     SetMessage($"加载文章列表失败: {result.Code}");
+                    // 确保 List 不为 null
+                    List = new ObservableCollection<Article>();
                 }
             }
             catch (Exception ex)
             {
                 SetMessage($"加载文章列表时发生错误: {ex.Message}");
+                // 确保 List 不为 null
+                List = new ObservableCollection<Article>();
             }
         }
 
@@ -157,13 +166,13 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             {
                 // 调用通用数据库服务获取完整的文章内容（包括Text字段）
                 var result = await _articleService.Get(articleId);
-                if (result.Value.Any())
+                if (result.Value != null  && result.Value.Any())
                 {
                     SelectedArticle = result.Value.First();
                 }
                 else
                 {
-                    throw new Exception($"文章数量为{List.Count}，无法加载文章内容");
+                    throw new Exception($"文章数量为{List?.Count}，无法加载文章内容");
                 }
             }
             catch (Exception ex)
@@ -178,7 +187,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             {
                 // 调用通用数据库服务获取完整的文章内容（包括Text字段）
                 var result = await _articleService.Get(article.Id);
-                if (result.Value.Any())
+                if (result.Value != null && result.Value.Any())
                 {
                     article= result.Value.First();
                     if (article != null)
@@ -214,17 +223,26 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
             try
             {
-                // 调用服务交换文章位置
-                var result = await _articleService.SwapArticlesAsync(article.Id, List[currentIndex - 1].Id);
-                if (result.IsSuccessful)
+                // 确保目标文章存在
+                if (currentIndex - 1 < List.Count)
                 {
-                    // 更新本地列表
-                    List.Move(currentIndex, currentIndex - 1);
-                    SetMessage("文章已上移");
-                }
-                else
-                {
-                    SetMessage($"上移失败: {result.Code}");
+                    var targetArticle = List[currentIndex - 1];
+                    if (targetArticle != null)
+                    {
+
+                        // 调用服务交换文章位置
+                        var result = await _articleService.SwapArticlesAsync(article.Id, List[currentIndex - 1].Id);
+                        if (result.IsSuccessful)
+                        {
+                            // 更新本地列表
+                            List.Move(currentIndex, currentIndex - 1);
+                            SetMessage("文章已上移");
+                        }
+                        else
+                        {
+                            SetMessage($"上移失败: {result.Code}");
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -245,17 +263,26 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
             try
             {
-                // 调用服务交换文章位置
-                var result = await _articleService.SwapArticlesAsync(article.Id, List[currentIndex + 1].Id);
-                if (result.IsSuccessful)
+                // 确保目标文章存在
+                if (currentIndex + 1 < List.Count)
                 {
-                    // 更新本地列表
-                    List.Move(currentIndex, currentIndex + 1);
-                    SetMessage("文章已下移");
-                }
-                else
-                {
-                    SetMessage($"下移失败: {result.Code}");
+                    var targetArticle = List[currentIndex + 1];
+                    if (targetArticle != null)
+                    {
+
+                        // 调用服务交换文章位置
+                        var result = await _articleService.SwapArticlesAsync(article.Id, List[currentIndex + 1].Id);
+                        if (result.IsSuccessful)
+                        {
+                            // 更新本地列表
+                            List.Move(currentIndex, currentIndex + 1);
+                            SetMessage("文章已下移");
+                        }
+                        else
+                        {
+                            SetMessage($"下移失败: {result.Code}");
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -303,7 +330,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         }
 
         // 当导航到该视图时调用
-        public override async void OnNavigatedTo(NavigationContext navigationContext)
+        public override void OnNavigatedTo(NavigationContext navigationContext)
         {
             base.OnNavigatedTo(navigationContext);
             // 从导航参数中获取BookId

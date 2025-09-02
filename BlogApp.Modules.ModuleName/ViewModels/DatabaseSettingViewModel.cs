@@ -23,13 +23,17 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
         private readonly IRegionManager _regionManager;
 
-        private IConfiguration _configuration;
+        private IConfiguration? _configuration;
+
+        private readonly string? _configFilePath;
+        //将默认端口号提取为常量
+        private const string DefaultSqlServerPort = "1433";
+        private const string DefaultMySqlPort = "3306";
 
         #endregion
 
         #region 属性 
 
-        private string _configFilePath;
 
         public bool KeepAlive => true;
 
@@ -47,11 +51,11 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                     // 切换数据库类型时，设置默认端口
                     if (IsSqlServer && string.IsNullOrEmpty(Port))
                     {
-                        Port = "1433"; // SQL Server 默认端口
+                        Port = DefaultSqlServerPort; // SQL Server 默认端口
                     }
                     else if (IsMySql && string.IsNullOrEmpty(Port))
                     {
-                        Port = "3306"; // MySQL 默认端口
+                        Port = DefaultMySqlPort; // MySQL 默认端口
                     }
                 } 
             }
@@ -71,22 +75,22 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                     // 切换数据库类型时，设置默认端口
                     if (IsSqlServer && string.IsNullOrEmpty(Port))
                     {
-                        Port = "1433"; // SQL Server 默认端口
+                        Port = DefaultSqlServerPort; // SQL Server 默认端口
                     }
                     else if (IsMySql && string.IsNullOrEmpty(Port))
                     {
-                        Port = "3306"; // MySQL 默认端口
+                        Port = DefaultMySqlPort; // MySQL 默认端口
                     }
                 }
                 ; 
             }
         }
 
-        private string _databaseProvider;
+        private string? _databaseProvider;
         /// <summary>
         /// 数据库类型
         /// </summary>
-        public string DatabaseProvider
+        public string? DatabaseProvider
         {
             get 
             { 
@@ -98,39 +102,39 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             }
         }
 
-        private string _server;
-        public string Server
+        private string? _server;
+        public string? Server
         {
             get { return _server; }
             set { SetProperty(ref _server, value); }
         }
 
-        private string _port;
+        private string? _port;
         /// <summary>
         /// 端口号
         /// </summary>
-        public string Port
+        public string? Port
         {
             get { return _port; }
             set { SetProperty(ref _port, value); }
         }
 
-        private string _database;
-        public string Database
+        private string? _database;
+        public string? Database
         {
             get { return _database; }
             set { SetProperty(ref _database, value); }
         }
 
-        private string _userId;
-        public string UserId
+        private string? _userId;
+        public string? UserId
         {
             get { return _userId; }
             set { SetProperty(ref _userId, value); }
         }
 
-        private string _password;
-        public string Password
+        private string? _password;
+        public string? Password
         {
             get { return _password; }
             set { SetProperty(ref _password, value); }
@@ -153,10 +157,16 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         {
 
             _regionManager = regionManager;
-            
-            _configFilePath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
 
-            // 初始化配置
+            // 添加这行代码来初始化 _configFilePath
+            _configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+
+            // 先初始化为一个空的配置
+            _configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection()
+                .Build();
+
+            // 然后加载实际配置
             LoadConfiguration();
 
             // 初始化命令
@@ -188,7 +198,13 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
                     if (!string.IsNullOrEmpty(connectionString))
                     {
-                        ParseConnectionString(connectionString, databaseProvider);
+                        if(databaseProvider != null)
+                            ParseConnectionString(connectionString, databaseProvider);
+                        else
+                        {
+                            SetMessage("DatabaseProvider is null");
+                            return;
+                        }
                     }
 
                     // 设置数据库类型
@@ -202,11 +218,12 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 {
                     // 创建默认配置文件
                     CreateDefaultConfigFile();
+                    SetMessage("已创建默认配置文件，请配置数据库连接信息");
                 }
             }
             catch (Exception ex)
             {
-                Message = $"加载配置文件失败: {ex.Message}";
+                SetMessage($"加载配置文件失败: {ex.Message}");
             }
         }
 
@@ -252,7 +269,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                     // 如果没有解析到端口号，设置默认值
                     if (string.IsNullOrEmpty(Port))
                     {
-                        Port = "3306";
+                        Port = DefaultMySqlPort;
                     }
                 }
                 else
@@ -280,7 +297,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                     // 如果没有解析到端口号，设置默认值
                     if (string.IsNullOrEmpty(Port))
                     {
-                        Port = "1433";
+                        Port = DefaultSqlServerPort;
                     }
                 }
             }
@@ -304,21 +321,14 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                             new JProperty("DefaultConnection", "")
                         )
                     ),
-                    new JObject(
-                        new JProperty("Logging",
-                            new JObject(
-                                new JProperty("LogLevel",
-                                    new JObject(
-                                        new JProperty("Default", "Information"),
-                                        new JProperty("Microsoft", "Warning"),
-                                        new JProperty("Microsoft.Hosting.Lifetime", "Information")
-                                    )
-                                )
-                            )
-                        )
-                    )
+                    new JProperty("DatabaseProvider", "SqlServer"), // 添加默认数据库类型
+                    CreateDefaultLoggingConfig()
                 );
 
+                if(_configFilePath == null)
+                {
+                    throw new Exception("_configFilePath为空。");
+                }
                 string json = defaultConfig.ToString(Formatting.Indented);
                 File.WriteAllText(_configFilePath, json);
 
@@ -333,7 +343,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         /// <summary>
         /// 测试数据库连接
         /// </summary>
-        private async void TestConnection(PasswordBox box)
+        private void TestConnection(PasswordBox box)
         {
             try
             {
@@ -341,25 +351,14 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
                 Password = box.Password;
 
+                if (!ValidateConnectionParameters())
+                    return;
+
                 var connectionString = BuildConnectionString();
-                if (IsMySql)
-                {
-                    // 测试 MySQL 连接
-                    using (var connection = new MySqlConnection(connectionString))
-                    {
-                        await connection.OpenAsync();
-                        SetMessage("MySQL 连接成功!");
-                    }
-                }
-                else
-                {
-                    // 测试 SQL Server 连接
-                    using (var connection = new SqlConnection(connectionString))
-                    {
-                        await connection.OpenAsync();
-                        SetMessage("连接成功!");
-                    }
-                }
+                if (string.IsNullOrEmpty(connectionString))
+                    throw new Exception("连接字符串为空。");
+                // 调用 TestDatabaseConnection 但不需要检查返回值，因为它会自己设置消息
+                TestDatabaseConnection(connectionString);
             }
             catch (Exception ex)
             {
@@ -376,7 +375,13 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             {
                 Password = box.Password;
 
+                if (!ValidateConnectionParameters())
+                    return;
+
                 var connectionString = BuildConnectionString();
+
+                if (connectionString == null)
+                    throw new Exception("连接字符串中有空值");
 
                 // 测试连接是否有效
                 if (IsMySql)
@@ -393,18 +398,40 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                         connection.Open();
                     }
                 }
+                if (_configFilePath == null)
+                {
+                    throw new Exception("_configFilePath为空。");
+                }
+                // 读取现有配置或创建新配置
+                JObject config;
+                if (File.Exists(_configFilePath))
+                {
+                    var configJson = File.ReadAllText(_configFilePath);
+                    config = JsonConvert.DeserializeObject<JObject>(configJson) ?? new JObject();
+                }
+                else
+                {
+                    config = new JObject();
+                }
 
-                // 读取现有配置
-                var configJson = File.ReadAllText(_configFilePath);
-                dynamic config = JsonConvert.DeserializeObject(configJson);
+                // 更新或添加连接字符串和数据库类型
+                if (config["ConnectionStrings"] is not JObject connectionStrings)
+                {
+                    connectionStrings = new JObject();
+                    config["ConnectionStrings"] = connectionStrings;
+                }
 
-                // 更新连接字符串和数据库类型
-                config["ConnectionStrings"]["DefaultConnection"] = connectionString;
-                config["DatabaseProvider"] = DatabaseProvider; // 保存数据库类型
+                connectionStrings["DefaultConnection"] = connectionString;
+                config["DatabaseProvider"] = DatabaseProvider;
+
+                // 确保有日志配置
+                if (config["Logging"] == null)
+                {
+                    config["Logging"] = CreateDefaultLoggingConfig();
+                }
 
                 // 保存回文件
-                string updatedJson = config.ToString(Formatting.Indented);
-                File.WriteAllText(_configFilePath, updatedJson);
+                File.WriteAllText(_configFilePath, config.ToString(Formatting.Indented));
 
                 SetMessage("配置已保存并验证成功!");
 
@@ -420,19 +447,24 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         /// <summary>
         /// 构建连接字符串
         /// </summary>
-        private string BuildConnectionString()
+        private string? BuildConnectionString()
         {
+            if (string.IsNullOrEmpty(Server) || string.IsNullOrEmpty(Database) ||
+                string.IsNullOrEmpty(UserId) || string.IsNullOrEmpty(Password))
+            {
+                return null;
+            }
             if (IsMySql)
             {
                 // MySQL 连接字符串格式
-                return $"Server={Server};Port={Port};Database={Database};User ID={UserId};Password={Password};";
+                return $"Server={Server};Port={Port};Database={Database};User ID={UserId};Password={Password};Connection Timeout=30;";
             }
             else
             {
                 // SQL Server 连接字符串格式
                 var builder = new SqlConnectionStringBuilder
                 {
-                    DataSource = string.IsNullOrEmpty(Port) || Port == "1433" ?
+                    DataSource = string.IsNullOrEmpty(Port) || Port == DefaultSqlServerPort ?
                         Server : $"{Server},{Port}",
                     InitialCatalog = Database,
                     UserID = UserId,
@@ -448,7 +480,104 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             }
         }
 
+        /// <summary>
+        /// 连接测试
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
+        private bool TestDatabaseConnection(string connectionString)
+        {
+            try
+            {
+                if (IsMySql)
+                {
+                    using (var connection = new MySqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        SetMessage("MySQL 连接成功!"); // 添加成功消息
+                        return true;
+                    }
+                }
+                else
+                {
+                    using (var connection = new SqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        SetMessage("SQL Server 连接成功!"); // 添加成功消息
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SetMessage($"连接失败: {ex.Message}"); // 提供更详细的错误信息
+                return false;
+            }
+        }
 
+        private bool ValidateConnectionParameters()
+        {
+            if (string.IsNullOrWhiteSpace(Server))
+            {
+                SetMessage("服务器地址不能为空");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(Database))
+            {
+                SetMessage("数据库名称不能为空");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                SetMessage("用户名不能为空");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(Password))
+            {
+                SetMessage("密码不能为空");
+                return false;
+            }
+            if (string.IsNullOrEmpty(Port))
+            {
+                SetMessage("端口号不能为空");
+                return false;
+
+            }
+            else if(!ValidatePort(Port))
+            {
+                SetMessage("端口号超出范围(1~65535)");
+                return false;
+            }
+
+
+            return true;
+        }
+
+        private JObject CreateDefaultLoggingConfig()
+        {
+            return new JObject(
+                new JProperty("LogLevel",
+                    new JObject(
+                        new JProperty("Default", "Information"),
+                        new JProperty("Microsoft", "Warning"),
+                        new JProperty("Microsoft.Hosting.Lifetime", "Information")
+                    )
+                )
+            );
+        }
+
+        // 验证端口号，范围限定在 0~65535
+        private bool ValidatePort(string port)
+        {
+            if (int.TryParse(port, out int portNumber))
+            {
+                return portNumber > 0 && portNumber <= 65535;
+            }
+            return false;
+        }
 
         #endregion
     }

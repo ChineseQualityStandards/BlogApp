@@ -20,7 +20,7 @@ namespace BlogApp
     /// </summary>
     public partial class App
     {
-        private IConfiguration? _configuration;
+        private readonly IConfiguration? _configuration;
 
         public App()
         {
@@ -40,11 +40,9 @@ namespace BlogApp
         protected override void OnInitialized()
         {
             base.OnInitialized();
-            using (var context = Container.Resolve<BlogAppContext>())
-            {
-                // 自动创建数据库和表
-                context.Database.EnsureCreated();
-            }
+            using var context = Container.Resolve<BlogAppContext>();
+            // 自动创建数据库和表
+            context.Database.EnsureCreated();
         }
 
         /// <summary>
@@ -56,6 +54,10 @@ namespace BlogApp
         {
             try
             {
+                if(_configuration == null)
+                {
+                    throw new Exception("_configuration为空.");
+                }
                 //从配置中读取连接字符串和数据库类型
                 var connectionString = _configuration.GetConnectionString("DefaultConnection");
                 var databaseProvider = _configuration["DatabaseProvider"];

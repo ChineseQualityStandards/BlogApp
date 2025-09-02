@@ -27,8 +27,6 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
         #region 属性
 
-        private int _currentBookId;
-
         public bool KeepAlive => false;
 
         private string? _MdText;
@@ -38,9 +36,9 @@ namespace BlogApp.Modules.ModuleName.ViewModels
             set => SetProperty(ref _MdText, value);
         }
 
-        private Article _Article;
+        private Article? _Article;
 
-        public Article Article
+        public Article? Article
         {
             get { return _Article; }
             set { SetProperty(ref _Article, value); }
