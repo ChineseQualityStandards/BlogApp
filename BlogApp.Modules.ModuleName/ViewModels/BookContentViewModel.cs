@@ -28,7 +28,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
 
         private int _currentBookId;
 
-        public bool KeepAlive => true;
+        public bool KeepAlive => false;
 
         private ObservableCollection<Article>? list;
         /// <summary>
@@ -122,12 +122,18 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                     if(result.Value.Count == 0)
                     {
                         SetMessage($"文章数量为{result.Value.Count}");
+                        List = result.Value;
+                        SelectedArticle = new Article();
                     }
                     else if (result.Value.Count > 0)
                     {
                         // 更新数据
                         List = result.Value;
+
                         SetMessage($"文章数量为{result.Value.Count}");
+
+                        // 自动加载第一篇文章的内容
+                        LoadArticleContentAsync(List.First().Id);
                     }
                 }
                 else
@@ -157,7 +163,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 }
                 else
                 {
-                    throw new Exception("无法加载文章内容");
+                    throw new Exception($"文章数量为{List.Count}，无法加载文章内容");
                 }
             }
             catch (Exception ex)
@@ -297,7 +303,7 @@ namespace BlogApp.Modules.ModuleName.ViewModels
         }
 
         // 当导航到该视图时调用
-        public override void OnNavigatedTo(NavigationContext navigationContext)
+        public override async void OnNavigatedTo(NavigationContext navigationContext)
         {
             base.OnNavigatedTo(navigationContext);
             // 从导航参数中获取BookId
@@ -306,8 +312,12 @@ namespace BlogApp.Modules.ModuleName.ViewModels
                 _currentBookId = navigationContext.Parameters.GetValue<int>("BookId");
                 // 加载该BookId下的文章列表
                 LoadArticlesAsync(_currentBookId);
+                
+
             }
-            SelectedArticle = new Article();
+            if (SelectedArticle == null)
+                SelectedArticle = new Article();
+            
         }
 
         #endregion

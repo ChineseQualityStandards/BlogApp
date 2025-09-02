@@ -35,7 +35,7 @@
                     SelectedItem="{Binding SelectedArticle, Mode=TwoWay}">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="SelectionChanged">
-                            <i:InvokeCommandAction Command="{Binding ArticleSelectedCommand}" CommandParameter="{Binding ElementName=ArticlesListBox, Path=SelectedItem}" />
+                            <i:InvokeCommandAction Command="{Binding ArticleSelectedCommand}" CommandParameter="{Binding ElementName=ArticlesListBox, Path=SelectedItem, Mode=TwoWay}" />
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
                     <!--  添加右键菜单  -->
