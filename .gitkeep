@@ -1,7 +1,0 @@
-mkdir publish
-cd publish
-echo > .gitkeep
-cd ..
-git add publish/.gitkeep
-git commit -m "新建 publish 文件夹"
-git push
